@@ -22,3 +22,16 @@ def user_list(request):
             print(serializer.errors)
             return Response(serializer.errors)
 
+@api_view(['GET', 'POST'])
+def user_info_list(request):
+    if request.method == 'GET':
+        users_info = UserInfo.objects.all()
+        serializer = UserInfoSerializer(users_info, many=True)
+        return JsonResponse({"users info": serializer.data})
+    elif request.method == 'POST':
+        serializer = UserInfoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors)
