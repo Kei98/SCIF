@@ -5,31 +5,32 @@ from .serializers import *
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.request import Request
 
-@api_view(['GET', 'POST'])
-def user_list(request):
-    if request.method == 'GET':
-        users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors)
+@api_view(['GET'])
+def user_list(request, format=None):
+    users = User.objects.all()
+    serializer = UsersSerializer(users, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def user_post(request, format=None):
+    serializer = UserSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        return Response(serializer.errors)
+    
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def user_detail(request, id):
+def user_detail(request, id, format=None):
     try:
         user = User.objects.get(pk=id)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
     if request.method == 'GET':
-        serializer = UserSerializer(user)
+        serializer = UsersSerializer(user)
         return Response(serializer.data)
     elif request.method == 'PUT':
         print(request.__str__())
@@ -40,11 +41,6 @@ def user_detail(request, id):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'DELETE':
-        # try:
-        #     user.delete()
-        #     return Response(status.HTTP_204_NO_CONTENT)
-        # except: 
-        #     return Response()
         user.user_active = 0
         serializer1 = UserSerializer(user)
         request.data._mutable = True
@@ -56,8 +52,9 @@ def user_detail(request, id):
             return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
 
 @api_view(['GET', 'POST'])
-def user_info_list(request):
+def user_info_list(request, format=None):
     if request.method == 'GET':
+        users_info = UserInfo.objects.select_all()
         users_info = UserInfo.objects.all()
         serializer = UserInfoSerializer(users_info, many=True)
         return Response(serializer.data)
@@ -71,7 +68,7 @@ def user_info_list(request):
         
 
 @api_view(['GET', 'PUT', 'DELETE'])
-def user_info_detail(request, id):
+def user_info_detail(request, id, format=None):
     try:
         user_info = UserInfo.objects.get(pk=id)
         #print(user)
@@ -92,10 +89,27 @@ def user_info_detail(request, id):
             user_info.delete()
             return Response(status.HTTP_204_NO_CONTENT)
         except IntegrityError as e:
-            #print("ERROR: " + e.__str__())
-            request.data['user_info_active'] = 0
+            user_info.user_info_active = 0
+            serializer1 = UserInfoSerializer(user_info)
+            request.data._mutable = True
+            request.data.update(serializer1.data)
+            request.data._mutable = False
             serializer = UserInfoSerializer(user_info, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+    
+@api_view(['GET', 'POST'])
+def user_role_list(request, format=None):
+    if request.method == 'GET':
+        user_roles = UserRole.objects.all()
+        serializer = UserRoleSerializer(user_roles, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = UserRoleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors)
