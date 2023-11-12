@@ -1,4 +1,3 @@
-#from django.http import JsonResponse
 from django.db import IntegrityError
 from .models import *
 from .serializers import *
@@ -54,7 +53,6 @@ def user_detail(request, id, format=None):
 @api_view(['GET', 'POST'])
 def user_info_list(request, format=None):
     if request.method == 'GET':
-        users_info = UserInfo.objects.select_all()
         users_info = UserInfo.objects.all()
         serializer = UserInfoSerializer(users_info, many=True)
         return Response(serializer.data)

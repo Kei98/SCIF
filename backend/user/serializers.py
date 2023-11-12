@@ -9,14 +9,14 @@ class UserRoleSerializer(serializers.ModelSerializer):
         fields = ['user_role_id', 'user_role_name', 'user_role_active']
 
 
+#Get all
 class UsersSerializer(serializers.ModelSerializer):
     # get the user role name for each user
     _user_role = serializers.CharField(source='user_role.user_role_name')
 
     class Meta:
         model = User
-        fields = ['user_id', 'user_name', 'user_email',
-                  'user_password', 'user_active', '_user_role']
+        fields = ['user_id', 'user_name', 'user_email', 'user_active', '_user_role']
 
 
 class UserSerializer(serializers.ModelSerializer):

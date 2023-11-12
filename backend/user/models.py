@@ -1,12 +1,5 @@
 from django.db import models
 
-class UserManager(models.Manager):
-    def select_all(self):
-        r = UserInfo.objects.select_related('_user').all()
-        print(r)
-        for result in r:
-            print(result.user_info_email)
-
 class User(models.Model):
     user_id = models.OneToOneField('UserInfo', models.DO_NOTHING, related_name='_user', primary_key=True)
     user_name = models.CharField(unique=True, max_length=20)
@@ -40,8 +33,6 @@ class UserInfo(models.Model):
     user_info_email = models.CharField(unique=True, max_length=30)
     user_info_address = models.CharField(max_length=255)
     user_info_active = models.TextField(blank=True, null=True)  # This field type is a guess.
-
-    objects = UserManager()
 
     class Meta:
         #managed = False
