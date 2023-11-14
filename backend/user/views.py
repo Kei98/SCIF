@@ -32,8 +32,6 @@ def user_detail(request, id, format=None):
         serializer = UsersSerializer(user)
         return Response(serializer.data)
     elif request.method == 'PUT':
-        print(request.__str__())
-        print(request.body)
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -42,9 +40,9 @@ def user_detail(request, id, format=None):
     elif request.method == 'DELETE':
         user.user_active = 0
         serializer1 = UserSerializer(user)
-        request.data._mutable = True
+        request.data['_mutable'] = True
         request.data.update(serializer1.data)
-        request.data._mutable = False
+        request.data['_mutable'] = False
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -89,9 +87,9 @@ def user_info_detail(request, id, format=None):
         except IntegrityError as e:
             user_info.user_info_active = 0
             serializer1 = UserInfoSerializer(user_info)
-            request.data._mutable = True
+            request.data['_mutable'] = True
             request.data.update(serializer1.data)
-            request.data._mutable = False
+            request.data['_mutable'] = False
             serializer = UserInfoSerializer(user_info, data=request.data)
             if serializer.is_valid():
                 serializer.save()

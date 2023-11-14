@@ -1,14 +1,15 @@
 from rest_framework import serializers
 from .models import *
-from ..supplier.serializers import SupplierSerializer
+from supplier.serializers import SupplierSerializer
 
 
 class PurchasesSerializer(serializers.ModelSerializer):
-    _supplier = SupplierSerializer(read_only=True)
-    _user = serializers.IntegerField(
-        source='user._user.user_info_name', read_only=True)
+    supplier = SupplierSerializer(read_only=True)
+    _user = serializers.CharField(
+        source='user.user_id.user_info_name', read_only=True)
 
     class Meta:
+        model = Purchase
         fields = [
             'purchase_id',
             'purchase_number',
@@ -18,17 +19,24 @@ class PurchasesSerializer(serializers.ModelSerializer):
             'purchasediscount',
             'purchase_amount',
             'purchase_active',
-            '_supplier',
+            'supplier',
             '_user'
         ]
 
 
 class PurchaseSerializer(serializers.ModelSerializer):
     class Meta:
+        model = Purchase
         fields = '__all__'
 
 
-class PuchaseDetailSerializer(serializers.ModelSerializer):
+class PurchaseDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PurchaseDetail
+        fields = '__all__'
+
+
+class PurchaseDetailsSerializer(serializers.ModelSerializer):
     _product = serializers.CharField(
         source='product.product_name', read_only=True)
 
@@ -41,6 +49,6 @@ class PuchaseDetailSerializer(serializers.ModelSerializer):
             'purchase_detail_discount',
             'purchase_detail_quantity',
             'purchase_detail_subtotal',
-            'product',
+            '_product',
             'purchase'
         ]

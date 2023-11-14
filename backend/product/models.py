@@ -1,6 +1,6 @@
 from django.db import models
 
-class Product(models.Model):
+class Purchase(models.Model):
     product_id = models.AutoField(primary_key=True)
     product_name = models.CharField(unique=True, max_length=100)
     product_description = models.CharField(max_length=255, blank=True, null=True)
@@ -14,7 +14,7 @@ class Product(models.Model):
 
 
 class ProductInfo(models.Model):
-    product_info = models.OneToOneField(Product, models.DO_NOTHING, related_name='product_i', primary_key=True)
+    product_info = models.OneToOneField(Purchase, models.DO_NOTHING, related_name='product_i', primary_key=True)
     product_info_quantity = models.IntegerField()
     product_info_cost = models.DecimalField(max_digits=19, decimal_places=2)
     product_info_price = models.DecimalField(max_digits=19, decimal_places=2)
