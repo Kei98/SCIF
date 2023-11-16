@@ -88,7 +88,7 @@ def service_det_detail(request, id, format=None):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'DELETE':
-        service_det.user_active = 0
+        service_det.service_detail_active = 0
         serializer1 = ServiceDetSerializer(service_det)
         request.data['_mutable'] = True
         request.data.update(serializer1.data)
@@ -96,4 +96,4 @@ def service_det_detail(request, id, format=None):
         serializer = ServiceDetSerializer(service_det, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
+            return Response("Will be deactivated because deleting is not allowed", status=status.HTTP_202_ACCEPTED)
