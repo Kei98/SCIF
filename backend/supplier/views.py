@@ -42,7 +42,7 @@ def supplier_detail(request, id, format=None):
             supplier.delete()
             return Response(status.HTTP_204_NO_CONTENT)
         except IntegrityError as e:
-            supplier.user_info_active = 0
+            supplier.supplier_active = 0
             serializer1 = SupplierSerializer(supplier)
             request.data['_mutable'] = True
             request.data.update(serializer1.data)
