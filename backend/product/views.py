@@ -7,7 +7,7 @@ from rest_framework import status
 
 @api_view(['GET'])
 def product_list(request, format=None):
-    products = Purchase.objects.all()
+    products = Product.objects.all()
     serializer = ProductsSerializer(products, many=True)
     return Response(serializer.data)
 
@@ -24,8 +24,8 @@ def product_post(request, format=None):
 @api_view(['GET', 'PUT', 'DELETE'])
 def product_detail(request, id, format=None):
     try:
-        product = Purchase.objects.get(pk=id)
-    except Purchase.DoesNotExist:
+        product = Product.objects.get(pk=id)
+    except Product.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
     if request.method == 'GET':
@@ -67,7 +67,7 @@ def product_info_list(request, format=None):
 def product_info_detail(request, id, format=None):
     try:
         product_info = ProductInfo.objects.get(pk=id)
-    except Purchase.DoesNotExist:
+    except ProductInfo.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
     if request.method == 'GET':
@@ -79,6 +79,6 @@ def product_info_detail(request, id, format=None):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response('Eliminar no esta permitido', status=status.HTTP_400_BAD_REQUEST)
+    return Response('Deleting is not supported', status=status.HTTP_400_BAD_REQUEST)
     
 

@@ -1,5 +1,5 @@
 from django.db import models
-from product.models import Purchase
+from product.models import Product
 
 class Purchase(models.Model):
     purchase_id = models.AutoField(primary_key=True)
@@ -25,7 +25,7 @@ class PurchaseDetail(models.Model):
     purchase_detail_discount = models.DecimalField(max_digits=19, decimal_places=2, blank=True, null=True)
     purchase_detail_quantity = models.IntegerField()
     purchase_detail_subtotal = models.DecimalField(max_digits=19, decimal_places=2)
-    product = models.ForeignKey(Purchase, models.DO_NOTHING, related_name= '_product')
+    product = models.ForeignKey(Product, models.DO_NOTHING, related_name= '_product')
     purchase = models.ForeignKey(Purchase, models.DO_NOTHING)
 
     class Meta:

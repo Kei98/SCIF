@@ -6,9 +6,9 @@ urlpatterns = [
     path('purchases', purchase_list),
     path('purchases/', purchase_post),
     path('purchases/<int:id>', purchase_detail),
-    path('purchasesinfo', purchase_det_list),
-    path('purchasesinfo/', purchase_det_post),
-    path('purchasesinfo/<int:id>', purchase_det_detail),
+    path('purchasesdet', purchase_det_list),
+    path('purchasesdet/', purchase_det_post),
+    path('purchasesdet/<int:id>', purchase_det_detail),
 
 ]
 

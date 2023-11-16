@@ -45,7 +45,7 @@ def purchase_detail(request, id, format=None):
         serializer = PurchaseSerializer(purchase, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
+            return Response("Will be deactivated because deleting is not allowed", status=status.HTTP_202_ACCEPTED)
         
 #Purchase Detail
 @api_view(['GET'])
@@ -67,17 +67,18 @@ def purchase_det_post(request, format=None):
 def purchase_det_detail(request, id, format=None):
     try:
         purchase_det = PurchaseDetail.objects.get(pk=id)
-    except Purchase.DoesNotExist:
+    except PurchaseDetail.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
     if request.method == 'GET':
         serializer = PurchaseDetailsSerializer(purchase_det)
         return Response(serializer.data)
     elif request.method == 'PUT':
-        serializer = PurchaseDetail(purchase_det, data=request.data)
+        serializer = PurchaseDetailSerializer(purchase_det, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response('Deleting is not supported', status=status.HTTP_400_BAD_REQUEST)
     
 
