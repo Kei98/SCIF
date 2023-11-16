@@ -14,9 +14,6 @@ def product_list(request, format=None):
 @api_view(['GET','POST'])
 def product_post(request, format=None):
     serializer = ProductSerializer(data=request.data)
-    # products = Product.objects.all()
-    # serializer = ProductSerializer(products, many=True)
-    # return Response(serializer.data)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)

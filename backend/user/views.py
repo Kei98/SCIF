@@ -67,7 +67,6 @@ def user_info_list(request, format=None):
 def user_info_detail(request, id, format=None):
     try:
         user_info = UserInfo.objects.get(pk=id)
-        #print(user)
     except UserInfo.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     
