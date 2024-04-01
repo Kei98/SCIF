@@ -25,7 +25,7 @@ urlpatterns = [
     path('', include('supplier.urls')),
     path('', include('quote.urls')),
     # path('', include('sales.urls')),
-     path('', include('service.urls')),
-    # path('', include('auth.urls')),
+    path('', include('service.urls')),
+    path('', include('auth.urls')),
 ]
 

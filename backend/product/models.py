@@ -26,6 +26,7 @@ class ProductInfo(models.Model):
 
 class ProductSpecSheet(models.Model):
     product_spec_sheet_id = models.AutoField(primary_key=True)
+    product_spec_sheet_name = models.CharField(unique=True, max_length=100, null=True)
     product_spec_sheet_dir = models.CharField(unique=True, max_length=255)
     product_spec_sheet_active = models.BooleanField(blank=True, null=True) 
 
