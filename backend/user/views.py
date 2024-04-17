@@ -3,7 +3,9 @@ from .models import *
 from .serializers import *
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, generics, authentication, permissions
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.settings import api_settings
 
 @api_view(['GET'])
 def user_list(request, format=None):
@@ -11,15 +13,33 @@ def user_list(request, format=None):
     serializer = UsersSerializer(users, many=True)
     return Response(serializer.data)
 
-@api_view(['POST'])
-def user_post(request, format=None):
-    serializer = UserSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        return Response(serializer.errors)
-    
+# @api_view(['POST'])
+# def user_post(request, format=None):
+#     serializer = UserSerializer(data=request.data)
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#     else:
+#         return Response(serializer.errors)
+
+class CreateUserView(generics.CreateAPIView):
+    """Create a new user in the system"""
+    serializer_class = UserSerializer
+
+class CreateTokenView(ObtainAuthToken):
+    """Create a new auth token for user"""
+    serializer_class = AuthTokenSerializer
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+class ManageUserView(generics.RetrieveUpdateAPIView):
+    """Manage the authenticated user"""
+    serializer_class = UsersSerializer
+    authentication_classes = [authentication.TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        """Retrieve and return the authenticated user"""
+        return self.request.user
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def user_detail(request, id, format=None):
@@ -27,9 +47,9 @@ def user_detail(request, id, format=None):
         user = User.objects.get(pk=id)
     except User.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    
+
     if request.method == 'GET':
-        serializer = UsersSerializer(user)
+        serializer = UserSerializer(user)
         return Response(serializer.data)
     elif request.method == 'PUT':
         serializer = UserSerializer(user, data=request.data)
@@ -61,7 +81,7 @@ def user_info_list(request, format=None):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors)
-        
+
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def user_info_detail(request, id, format=None):
@@ -69,7 +89,7 @@ def user_info_detail(request, id, format=None):
         user_info = UserInfo.objects.get(pk=id)
     except UserInfo.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-    
+
     if request.method == 'GET':
         serializer = UserInfoSerializer(user_info)
         return Response(serializer.data)
@@ -94,7 +114,7 @@ def user_info_detail(request, id, format=None):
                 serializer.save()
                 return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
-    
+
 @api_view(['GET', 'POST'])
 def user_role_list(request, format=None):
     if request.method == 'GET':

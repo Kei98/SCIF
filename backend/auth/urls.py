@@ -7,6 +7,7 @@ urlpatterns = [
     path('signup', signup),
     path('test_token', test_token),
 
+
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

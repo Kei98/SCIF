@@ -4,39 +4,45 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 
 class AppUserManager(BaseUserManager):
-    def create_user(self, id, email, password=None, **extra_fields):
+    def create_user(self, id, email, role, password=None, **extra_fields):
         if not email:
             raise ValueError('An email is required')
         if not password:
             raise ValueError('A password is required')
         if not id:
-            raise ValueError('An user id is required')
-        email = self.normalize_email(email)
-        user = self.model(user_email=email, user_id=id, **extra_fields)
+            raise ValueError('A user id is required')
+        if not role:
+            raise ValueError('A user role is required')
+        email1 = self.normalize_email(email)
+        extra_fields['user_active'] = False
+        user = self.model(email=email1, id=id, role=role, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
-    def create_superuser(self, id, email, password=None):
+    def create_superuser(self, id, email, role, password=None):
         if not email:
             raise ValueError('An email is required')
         if not password:
             raise ValueError('A password is required')
         if not id:
-            raise ValueError('An user id is required')
-        user = self.create_user(email, id, password)
+            raise ValueError('A user id is required')
+        if not role:
+            raise ValueError('A user role is required')
+        user = self.create_user(email, id, role, password)
+        user.user_active = True
+        user.is_staff = True
         user.is_superuser = True
         user.save()
         return user
 
 class User(AbstractBaseUser, PermissionsMixin):
-    user_id = models.OneToOneField('UserInfo', models.DO_NOTHING, related_name='_user', primary_key=True)
-    user_name = models.CharField(unique=True, max_length=20)
-    user_email = models.EmailField(unique=True, max_length=50)
-    user_password = models.CharField(max_length=255, null=False)
+    id = models.OneToOneField('UserInfo', models.DO_NOTHING, related_name='_user', primary_key=True)
+    email = models.EmailField(unique=True, max_length=50)
+    # user_password = models.CharField(max_length=255, null=False)
     user_active = models.BooleanField(blank=True, null=True, default=False)
-    user_role = models.ForeignKey('UserRole', models.DO_NOTHING)
-    USERNAME_FIELD = 'user_email'
-    REQUIRED_FIELDS = ['user_name']
+    role = models.ForeignKey('UserRole', models.DO_NOTHING)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
     objects = AppUserManager()
 
     class Meta:
