@@ -22,7 +22,6 @@ class UsersSerializer(serializers.ModelSerializer):
         model = User
         fields = ['id', 'email', 'user_active', 'role', 'user_role']
 
-
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
@@ -32,7 +31,11 @@ class UserSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         print('validated_data')
         print(validated_data)
-        return get_user_model().objects.create_user(**validated_data)
+
+        # password = validated_data.pop('password', None)
+        user = get_user_model().objects.create_user(**validated_data)
+        # user.set_password(password)
+        return user
 
     def update(self, instance, validated_data):
         """Update and return user"""

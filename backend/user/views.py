@@ -1,17 +1,28 @@
 from django.db import IntegrityError
 from .models import *
 from .serializers import *
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
 from rest_framework import status, generics, authentication, permissions
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
+
 
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def user_list(request, format=None):
+    # print('request.user')
+    # print(request.user)
+    # if (not request.user.is_authenticated):
+        # return Response({"errors": 'Not logged in'}, status=status.HTTP_401_UNAUTHORIZED)
     users = User.objects.all()
     serializer = UsersSerializer(users, many=True)
     return Response(serializer.data)
+
 
 # @api_view(['POST'])
 # def user_post(request, format=None):
@@ -22,15 +33,19 @@ def user_list(request, format=None):
 #     else:
 #         return Response(serializer.errors)
 
+
 class CreateUserView(generics.CreateAPIView):
     """Create a new user in the system"""
     serializer_class = UserSerializer
+
 
 class CreateTokenView(ObtainAuthToken):
     """Create a new auth token for user"""
     serializer_class = AuthTokenSerializer
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
 
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 class ManageUserView(generics.RetrieveUpdateAPIView):
     """Manage the authenticated user"""
     serializer_class = UsersSerializer
@@ -41,6 +56,8 @@ class ManageUserView(generics.RetrieveUpdateAPIView):
         """Retrieve and return the authenticated user"""
         return self.request.user
 
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['GET', 'PUT', 'DELETE'])
 def user_detail(request, id, format=None):
     try:
@@ -68,6 +85,7 @@ def user_detail(request, id, format=None):
             serializer.save()
             return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
 
+
 @api_view(['GET', 'POST'])
 def user_info_list(request, format=None):
     if request.method == 'GET':
@@ -82,7 +100,8 @@ def user_info_list(request, format=None):
         else:
             return Response(serializer.errors)
 
-
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['GET', 'PUT', 'DELETE'])
 def user_info_detail(request, id, format=None):
     try:
@@ -115,6 +134,8 @@ def user_info_detail(request, id, format=None):
                 return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
 
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['GET', 'POST'])
 def user_role_list(request, format=None):
     if request.method == 'GET':

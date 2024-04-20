@@ -5,15 +5,9 @@ Content-Type: : application/json
 
 ###
 
-POST http://127.0.0.1:8000/signup
-Content-Type: : application/json
-
-{"username": "jweiof", "password": "iwergj", "email": "bskfyu@gmail.com"}
-
-###
-
 GET http://127.0.0.1:8000/test_token
 Content-Type: : application/json
+Authorization: Token c0a2518352d8c561b5aa6cb00d70f904b308586b
 
 {}
 
