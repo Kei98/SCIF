@@ -1,14 +1,19 @@
 # from django.db import IntegrityError
 from .models import *
 from .serializers import *
-from rest_framework.decorators import api_view
+# from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
 from django.db.models import Value, CharField
 from django.db.models.functions import Concat
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
 
 @api_view(['GET', 'POST'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def product_sheet_list(request, format=None):
     if request.method == 'GET':
         product_sheets = ProductSpecSheet.objects.all()
@@ -24,6 +29,8 @@ def product_sheet_list(request, format=None):
 
 
 @api_view(['GET'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def product_list(request, format=None):
     products = Product.objects.all()
     # data_with_labels = Product.objects.annotate(custom_field=Concat(
@@ -44,6 +51,8 @@ def product_list(request, format=None):
 
 
 @api_view(['GET', 'POST'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def product_post(request, format=None):
     serializer = ProductSerializer(data=request.data)
     print('prod serializer')
@@ -59,6 +68,8 @@ def product_post(request, format=None):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def product_detail(request, id, format=None):
     try:
         product = Product.objects.get(pk=id)
@@ -87,8 +98,9 @@ def product_detail(request, id, format=None):
 
 # Product Info
 
-
 @api_view(['GET', 'POST'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def product_info_list(request, format=None):
     if request.method == 'GET':
         product_info = ProductInfo.objects.all()
@@ -107,6 +119,8 @@ def product_info_list(request, format=None):
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def product_info_detail(request, id, format=None):
     try:
         product_info = ProductInfo.objects.get(pk=id)

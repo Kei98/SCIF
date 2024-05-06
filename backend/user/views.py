@@ -87,6 +87,8 @@ def user_detail(request, id, format=None):
 
 
 @api_view(['GET', 'POST'])
+@authentication_classes([SessionAuthentication, TokenAuthentication])
+@permission_classes([IsAuthenticated])
 def user_info_list(request, format=None):
     if request.method == 'GET':
         users_info = UserInfo.objects.all()
@@ -100,9 +102,10 @@ def user_info_list(request, format=None):
         else:
             return Response(serializer.errors)
 
+
+@api_view(['GET', 'PUT', 'DELETE'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
-@api_view(['GET', 'PUT', 'DELETE'])
 def user_info_detail(request, id, format=None):
     try:
         user_info = UserInfo.objects.get(pk=id)
@@ -134,9 +137,10 @@ def user_info_detail(request, id, format=None):
                 return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
         return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
 
+
+@api_view(['GET', 'POST'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
-@api_view(['GET', 'POST'])
 def user_role_list(request, format=None):
     if request.method == 'GET':
         user_roles = UserRole.objects.all()
