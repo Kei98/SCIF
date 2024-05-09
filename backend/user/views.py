@@ -10,6 +10,19 @@ from rest_framework.authentication import SessionAuthentication, TokenAuthentica
 from rest_framework.permissions import IsAuthenticated
 
 
+def permissionsForLoggedUser(user_role_name):
+    match user_role_name:
+        case 'Administrador':
+            return 1
+        case 'Gerente Proyectos':
+            return 2
+        case 'Asesor Ventas':
+            return 3
+        case 'Cliente':
+            return 4
+        case _:
+            return -1
+
 
 @api_view(['GET'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])

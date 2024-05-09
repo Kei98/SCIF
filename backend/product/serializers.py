@@ -40,6 +40,29 @@ class ProductsSerializer(serializers.ModelSerializer):
         fields = ['ID', 'Name', 'Description',
                   'Image', 'Info', 'Spec', 'Active']
 
+class ProductInfoSerializerGetRefined(serializers.ModelSerializer):
+    Quantity = serializers.IntegerField(source='product_info_quantity')
+    Cost = serializers.DecimalField(
+        source='product_info_cost', max_digits=19, decimal_places=2)
+    Price = serializers.DecimalField(
+        source='product_info_price', max_digits=19, decimal_places=2)
+
+    class Meta:
+        model = ProductInfo
+        fields = ['Quantity', 'Cost', 'Price']
+
+class ProductsSerializerRefined(serializers.ModelSerializer):
+    ID = serializers.CharField(source='product_id')
+    Name = serializers.CharField(source='product_name')
+    Active = serializers.CharField(source='product_active')
+    # Name = serializers.CharField(source='product_id')
+    Info = ProductInfoSerializerGetRefined(read_only=True, source='product_i')
+
+
+    class Meta:
+        model = Product
+        fields = ['ID', 'Name', 'Info', 'Active']
+
 
 class ProductSerializer(serializers.ModelSerializer):
     # ID = serializers.CharField(source='product_id', allow_null=True, allow_blank=True)
@@ -55,8 +78,8 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = '__all__'
         # ['ID', 'Name', 'Description',
         #           'Image', 'Spec', 'Active']
-        
-        
+
+
     #     {   "product_id":null,
     # "product_name": "hjsed",
     # "product_description":null,

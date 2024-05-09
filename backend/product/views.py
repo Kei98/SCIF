@@ -9,7 +9,7 @@ from django.db.models.functions import Concat
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
-
+from user.views import permissionsForLoggedUser;
 
 @api_view(['GET', 'POST'])
 @authentication_classes([SessionAuthentication, TokenAuthentication])
@@ -32,6 +32,10 @@ def product_sheet_list(request, format=None):
 @authentication_classes([SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def product_list(request, format=None):
+    # print(request.headers['Authorization'][6:])
+    # print(request.user)
+    # print(request.user.role.user_role_name)
+    # if(permissionsForLoggedUser(request.user.role.user_role_name) == 1):
     products = Product.objects.all()
     # data_with_labels = Product.objects.annotate(custom_field=Concat(
     #     Value('product_id: '), 'ID',

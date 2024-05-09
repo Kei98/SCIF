@@ -52,3 +52,45 @@ class PurchaseDetailsSerializer(serializers.ModelSerializer):
             '_product',
             'purchase'
         ]
+
+
+class InventoryPurchaseSerializer(serializers.ModelSerializer):
+    PProduct = serializers.CharField(
+        source='product.product_name', read_only=True)
+    PDate = serializers.DateTimeField(
+        source='purchase.purchase_date', read_only=True)
+    PQuantity = serializers.IntegerField(
+        source='purchase_detail_quantity', read_only=True)
+
+    class Meta:
+        model = PurchaseDetail
+        fields = [
+            'PDate',
+            'PProduct',
+            'PQuantity'
+        ]
+
+class ReportPurchaseSerializer(serializers.ModelSerializer):
+    PDate = serializers.DateTimeField(
+        source='purchase_date', read_only=True)
+    PSubtotal = serializers.DecimalField(max_digits=19, decimal_places=2,
+        source='purchase_subtotal', read_only=True)
+    PTax = serializers.DecimalField(max_digits=19, decimal_places=2,
+        source='purchase_tax', read_only=True)
+    PDiscount = serializers.DecimalField(max_digits=19, decimal_places=2,
+        source='purchase_discount', read_only=True)
+    PAmount = serializers.DecimalField(max_digits=19, decimal_places=2,
+        source='purchase_amount', read_only=True)
+    PActive = serializers.BooleanField(
+        source='purchase_active', read_only=True)
+
+    class Meta:
+        model = Purchase
+        fields = [
+            'PDate',
+            'PSubtotal',
+            'PTax',
+            'PDiscount',
+            'PAmount',
+            'PActive'
+        ]

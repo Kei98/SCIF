@@ -3,7 +3,9 @@ from .views import *
 from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
-    # path('paymentmethods', quote_list),
+    # path('inventoryreport', inventoryView),
+    path('salesreport', sales_report),
+    path('inventoryreport/', CreateInventoryView.as_view({'get': 'list'})),
     # path('paymentmethods/<int:id>', quote_detail),
     # path('salesstatus', quote_list),
     # path('salesstatus/<int:id>', quote_detail),
