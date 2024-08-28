@@ -14,10 +14,12 @@ def supplier_list(request, format=None):
         return Response(serializer.data)
     elif request.method == 'POST':
         serializer = SupplierSerializer(data=request.data)
+        print(request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
+            print(serializer.errors)
             return Response(serializer.errors)
 
 
@@ -35,12 +37,20 @@ def supplier_detail(request, id, format=None):
         serializer = SupplierSerializer(supplier, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     elif request.method == 'DELETE':
         try:
-            supplier.delete()
-            return Response(status.HTTP_204_NO_CONTENT)
+            supplier.supplier_active = 0
+            serializer1 = SupplierSerializer(supplier)
+            request.data['_mutable'] = True
+            request.data.update(serializer1.data, partial=True)
+            request.data['_mutable'] = False
+            serializer = SupplierSerializer(supplier, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
+
         except IntegrityError as e:
             supplier.supplier_active = 0
             serializer1 = SupplierSerializer(supplier)
