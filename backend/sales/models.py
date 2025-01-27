@@ -64,11 +64,3 @@ class SalesDetail(models.Model):
         # managed = False
         db_table = 'sales_detail'
 
-
-# class InventoryReportModel(models.Model):
-#     id = models.IntegerField(primary_key=True)
-#     Producto=models.CharField(max_length=255)
-#     Fecha_Venta= models.DateField()
-#     Cantidad_Vendida= models.IntegerField()
-#     Fecha_Compra= models.DateField()
-#     Cantidad_Comprada= models.IntegerField()

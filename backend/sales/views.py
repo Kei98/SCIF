@@ -1,17 +1,18 @@
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from .models import *
 from .serializers import *
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import viewsets, authentication, permissions
+from rest_framework import viewsets, status
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 import requests
 from django.shortcuts import render
 from django.db import connection
 from django.core.serializers import serialize
 from django.http import JsonResponse
-# from django.db.models import Q
-# from purchase.models import PurchaseDetail
-# from itertools import chain
+from rest_framework.views import APIView
 
 # @api_view(['GET'])
 # def quote_list(request, format=None):
@@ -64,93 +65,117 @@ def inventoryView(request, format=None):
         return JsonResponse(serialized_data, safe=False)
 
 
-# def displaytable(request):
-#     jtables=requests.get('http://127.0.0.1:8000/inventoryreport')
-#     jsonobj=jtables.json()
-#     return render(request, 'Index.html', {"inventoryreport": jsonobj})
-
-@api_view(['GET'])
-def sales_report(request, format=None):
-    report = Sales.objects.filter(sales_status.sales_status_id !="1")
-    print(report)
-    serializer = InventoryReportSerializer(report, many=True)
-    return Response(serializer.data)
-
-# @api_view(['GET','POST'])
-# def quote_post(request, format=None):
-#     serializer = QuoteSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     else:
-#         return Response(serializer.errors)
-
-
-# @api_view(['GET', 'PUT', 'DELETE'])
-# def quote_detail(request, id, format=None):
-#     try:
-#         quote = Quote.objects.get(pk=id)
-#     except Quote.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
-
-#     if request.method == 'GET':
-#         serializer = QuotesSerializer(quote)
-#         return Response(serializer.data)
-#     elif request.method == 'PUT':
-#         serializer = QuoteSerializer(quote, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#     elif request.method == 'DELETE':
-#         try:
-#             quote.delete()
-#             return Response(status.HTTP_204_NO_CONTENT)
-#         except IntegrityError as e:
-#             quote.quote_active = 0
-#             serializer1 = QuoteSerializer(quote)
-#             request.data['_mutable'] = True
-#             request.data.update(serializer1.data)
-#             request.data['_mutable'] = False
-#             serializer = QuoteSerializer(quote, data=request.data)
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
-#         return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
-
-
-# #Quote Answer
 # @api_view(['GET'])
-# def quote_answer_list(request, format=None):
-#     quote_ans = QuoteAnswer.objects.all()
-#     serializer = QuoteAnswersSerializer(quote_ans, many=True)
+# def sales_report(request, format=None):
+#     report = Sales.objects.exclude(sales_status_id=1)
+#     print(report)
+#     serializer = SalesReportSerializer(report, many=True)
 #     return Response(serializer.data)
 
-# @api_view(['GET','POST'])
-# def quote_answer_post(request, format=None):
-#     serializer = QuoteAnswerSerializer(data=request.data)
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-#     else:
-#         return Response(serializer.errors)
+class CreateSalesView(viewsets.ModelViewSet):
+    with connection.cursor() as cursor:
+        cursor.callproc('get_purchase_sale_report')
+        result= cursor.fetchall()
+        results = []
+        for row in result:
+            result_dict= dict(zip([col[0] for col in cursor.description], row))
+            results.append(result_dict)
 
-# @api_view(['GET', 'PUT', 'DELETE'])
-# def quote_answer_detail(request, id, format=None):
-#     try:
-#         quote_ans = QuoteAnswer.objects.get(pk=id)
-#     except QuoteAnswer.DoesNotExist:
-#         return Response(status=status.HTTP_404_NOT_FOUND)
+        queryset = results
+        serializer_class = SalesReportSerializer
 
-#     if request.method == 'GET':
-#         serializer = QuoteAnswersSerializer(quote_ans)
-#         return Response(serializer.data)
-#     elif request.method == 'PUT':
-#         serializer = QuoteAnswerSerializer(quote_ans, data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#     return Response('Deleting is not supported', status=status.HTTP_400_BAD_REQUEST)
+def salesView(request, format=None):
+    with connection.cursor() as cursor:
+        cursor.callproc('get_purchase_sale_report')
+        result= cursor.fetchall()
+        results = []
+        for row in result:
+            result_dict= dict(zip([col[0] for col in cursor.description], row))
+            results.append(result_dict)
+        serialized_data = serialize('json', results)
+        return JsonResponse(serialized_data, safe=False)
+
+@api_view(['GET'])
+def payment_method_get(request, format=None):
+    payment_method = PaymentMethod.objects.all()
+    serializer = PaymentMethodSerializer(payment_method, many=True)
+    return Response(serializer.data)
 
 
+@api_view(['GET'])
+def sales_get(request, format=None):
+    sale = Sales.objects.all()
+    serializer = SalessSerializer(sale, many=True)
+    return Response(serializer.data)
+
+@api_view(['GET'])
+def sales_get_or(request, format=None):
+    sale = Sales.objects.all()
+    serializer = SalesSerializerGet(sale, many=True)
+    return Response(serializer.data)
+
+class CreateSaleView(APIView):
+    @transaction.atomic
+    def post(self, request):
+        sales_data = request.data.get('sales')
+        sales_details_data = request.data.get('sales_details')
+
+        # Validate and save the Sales object
+        sales_serializer = SalesSerializer(data=sales_data)
+        if not sales_serializer.is_valid():
+            return Response(sales_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        sale = sales_serializer.save()
+
+        # Validate and save the SalesDetail objects
+        for detail in sales_details_data:
+            detail['sales'] = sale.sales_id  # Link SalesDetail to the created Sale
+            sales_detail_serializer = SalesDetSerializer(data=detail)
+            if not sales_detail_serializer.is_valid():
+                return Response(sales_detail_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            sales_detail_serializer.save()
+
+        return Response({'message': 'Sale created successfully!'}, status=status.HTTP_201_CREATED)
+
+class SalesListView(APIView):
+    def get(self, request):
+        sales = Sales.objects.all()
+        serializer = SalesSerializer(sales, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, sales_id):
+        try:
+            sale = Sales.objects.get(id=sales_id)
+            if sale.sales_status < 5:
+                sale.sales_status_id = 1
+                serializer1 = SalesSerializer(user)
+                request.data['_mutable'] = True
+                request.data.update(serializer1.data)
+                request.data['_mutable'] = False
+                serializer = SalesSerializer(user, data=request.data)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({'message': 'Sale cancelled successfully'}, status=status.HTTP_202_ACCEPTED)
+            else:
+                return Response({'message': 'Sale cannot be cancelled after it was delivered'}, status=status.HTTP_200_BAD_REQUEST)
+        except Sales.DoesNotExist:
+            return Response({'error': 'Sale not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class SalesDetailsView(APIView):
+    def get(self, request, sales_id):
+        details = SalesDetail.objects.filter(sales_id=sales_id)
+        serializer = SalesDetsSerializer(details, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class SalesDetailUpdateView(APIView):
+    def put(self, request, detail_id):
+        try:
+            detail = SalesDetail.objects.get(sales_detail_id=detail_id)
+        except SalesDetail.DoesNotExist:
+            return Response({'error': 'Sales detail not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = SalesDetsSerializer(detail, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

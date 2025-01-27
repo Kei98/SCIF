@@ -3,8 +3,9 @@ from .views import *
 from rest_framework.urlpatterns import format_suffix_patterns
 
 urlpatterns = [
-    
+
     path('suppliers', supplier_list),
+    path('suppliers/', supplier_post),
     path('suppliers/<int:id>', supplier_detail),
 ]
 

@@ -31,6 +31,10 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:4200",
+    "http://127.0.0.1:4200",
+]
 
 CORS_ALLOW_CREDENTIALS=True
 
@@ -76,29 +80,36 @@ INSTALLED_APPS = [
     'quote',
     'sales',
     'service'
-
 ]
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to access the cookie
+CSRF_USE_SESSIONS = False  # Default behavior; stores the token in a cookie
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Default session backend
+SESSION_COOKIE_SECURE = False  # Set to True in production
 
 ROOT_URLCONF = 'SCIF_home.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.csrf',
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
@@ -169,3 +180,39 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# SMTP server settings
+EMAIL_HOST = 'smtp.office365.com'
+EMAIL_PORT = 587
+
+# Enable security features
+EMAIL_USE_TLS = True  # Use TLS (Transport Layer Security) for encryption
+
+# Authentication credentials
+EMAIL_HOST_USER = 'automatizacion.sv@outlook.com'
+EMAIL_HOST_PASSWORD = '1234Auto'
+
+# Default 'from' email address
+DEFAULT_FROM_EMAIL = 'webmaster@outlook.com'  # This is displayed as the sender in emails
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'debug.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}

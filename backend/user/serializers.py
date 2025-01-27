@@ -72,7 +72,7 @@ class AuthTokenSerializer(serializers.Serializer):
         attrs['user'] = user
         return attrs
 
-class UserInfoSerializer(serializers.ModelSerializer):
+class UsersInfoSerializer(serializers.ModelSerializer):
     # get the user object related to this user info
     _user = UsersSerializer(read_only=True)
 
@@ -80,9 +80,18 @@ class UserInfoSerializer(serializers.ModelSerializer):
         model = UserInfo
         fields = '__all__'
 
+class UserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserInfo
+        fields = '__all__'
 
-class UserContactSerializer(serializers.ModelSerializer):
+class UserContactsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserContact
         fields = ['user_contact_id', 'user_contact_number', 'user_contact_name',
                   'user_contact_active', 'user_info']
+
+class UserContactSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserContact
+        fields = '__all__'

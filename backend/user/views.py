@@ -1,4 +1,4 @@
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from .models import *
 from .serializers import *
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
@@ -8,17 +8,22 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.settings import api_settings
 from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.http import JsonResponse
 
+@ensure_csrf_cookie
+def csrf_test(request):
+    return JsonResponse({"message": "CSRF token set"})
 
 def permissionsForLoggedUser(user_role_name):
     match user_role_name:
-        case 'Administrador':
+        case 'Admin':
             return 1
-        case 'Gerente Proyectos':
+        case 'Project Manager':
             return 2
-        case 'Asesor Ventas':
+        case 'Seller':
             return 3
-        case 'Cliente':
+        case 'Customer':
             return 4
         case _:
             return -1
@@ -28,10 +33,6 @@ def permissionsForLoggedUser(user_role_name):
 @authentication_classes([SessionAuthentication, TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def user_list(request, format=None):
-    # print('request.user')
-    # print(request.user)
-    # if (not request.user.is_authenticated):
-        # return Response({"errors": 'Not logged in'}, status=status.HTTP_401_UNAUTHORIZED)
     users = User.objects.all()
     serializer = UsersSerializer(users, many=True)
     return Response(serializer.data)
@@ -47,10 +48,36 @@ def user_list(request, format=None):
 #         return Response(serializer.errors)
 
 
-class CreateUserView(generics.CreateAPIView):
-    """Create a new user in the system"""
-    serializer_class = UserSerializer
+# class CreateUserView(generics.CreateAPIView):
+#     """Create a new user in the system"""
+#     serializer_class = UserSerializer
 
+class CreateUserView(generics.CreateAPIView):
+    @transaction.atomic
+    def post(self, request):
+        user_data = request.data.get('user')
+        user_info_data = request.data.get('user_info')
+        user_contact_data = request.data.get('user_contact_info')
+        print('enters CreateUserView')
+
+        print(user_info_data)
+        user_info_serializer = UserInfoSerializer(data=user_info_data)
+        if not user_info_serializer.is_valid():
+            return Response(user_info_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_info = user_info_serializer.save()
+
+        user_contact_data['user_info'] = user_info.user_info_id
+        user_contact_serializer = UserContactSerializer(data=user_contact_data)
+        if not user_contact_serializer.is_valid():
+            return Response(user_contact_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user_data['id'] = user_info.user_info_id
+        user_serializer = UserSerializer(data=user_data)
+        if not user_serializer.is_valid():
+            return Response(user_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user_serializer.create(user_serializer.validated_data)
+        user_contact_serializer.save()
+        return Response({'message': 'User created successfully!'}, status=status.HTTP_201_CREATED)
 
 class CreateTokenView(ObtainAuthToken):
     """Create a new auth token for user"""

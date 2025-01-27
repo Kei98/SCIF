@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('service', '0001_initial'),
         ('product', '0001_initial'),
-        ('sales', '0002_alter_salesdetail_options'),
+        ('sales', '0001_initial'),
     ]
 
     operations = [
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='salesdetail',
-            name='product',
+            name='product_s',
             field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.DO_NOTHING, to='product.product'),
             preserve_default=False,
         ),

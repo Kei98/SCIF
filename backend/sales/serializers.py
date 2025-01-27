@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-from service.serializers import ServiceDetsSerializer
+from service.serializers import ServiceDetsSerializer, ServicesSerializerGet
 from product.serializers import ProductInfoSerializerGet
 from purchase.serializers import ReportPurchaseSerializer
 from purchase.models import PurchaseDetail
@@ -18,41 +18,16 @@ class SalesStatusSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class InventoryReportSerializer(serializers.Serializer):
-    # Purchase = InventoryPurchaseSerializer(source='product_detail', read_only=True)
-    # Product = serializers.CharField(
-    #     source='product_s.product_name', read_only=True)
-    # Quantity = serializers.IntegerField(
-    #     source='sales_detail_quantity', read_only=True)
-    # Date = serializers.DateTimeField(
-    #     source='sales.sales_date', read_only=True)
-    # Product = serializers.CharField(
-    #     source='product.product_name', read_only=True)
-    # PDate = serializers.DateTimeField(
-    #     source='purchase.purchase_date', read_only=True)
-    # PQuantity = serializers.IntegerField(
-    #     source='purchase_detail_quantity', read_only=True)
-    # id = serializers.IntegerField(primary_key=True)
-    # for row in serializers:
-    #         Producto=row[0],
-    #         Fecha_Venta= row[1],
-    #         Cantidad_Vendida= row[2],
-    #         Fecha_Compra= row[3],
-    #         Cantidad_Comprada= row[4]
-    Producto=serializers.CharField(max_length=255)
-    Fecha= serializers.DateTimeField()
-    Cantidad= serializers.DecimalField(max_digits=19, decimal_places=2)
-    # Fecha_Compra= serializers.DateTimeField()
-    # Cantidad_Comprada= serializers.DecimalField(max_digits=19, decimal_places=2)
+    Product=serializers.CharField(max_length=255)
+    Date= serializers.DateTimeField(format="%Y-%m-%d")
+    Quantity= serializers.DecimalField(max_digits=19, decimal_places=2)
 
-    # class Meta:
-    #     model = InventoryReportModel
-    #     fields = [
-    #          'Producto',
-    #          'Fecha_Venta',
-    #          'Cantidad_Vendida',
-    #          'Fecha_Compra',
-    #          'Cantidad_Comprada'
-    #          ]
+
+
+class SalesReportSerializer(serializers.Serializer):
+    ID=serializers.IntegerField()
+    Date= serializers.DateTimeField(format="%Y-%m-%d")
+    Total= serializers.DecimalField(max_digits=19, decimal_places=2)
 
 class ReportSerializer(serializers.ModelSerializer):
     Purchase = ReportPurchaseSerializer(read_only=True)
@@ -84,25 +59,31 @@ class ReportSerializer(serializers.ModelSerializer):
 
 
 class SalessSerializer(serializers.ModelSerializer):
-    _user = serializers.CharField(
-        source='user.user_id.user_info_name', read_only=True)
-    _payment_method = serializers.CharField(
+    ID = serializers.IntegerField(source='sales_id')
+    Date = serializers.DateTimeField(source='sales_date', format="%Y-%m-%d")
+    Subtotal = serializers.DecimalField(source='sales_subtotal', max_digits=19, decimal_places=2)
+    Tax = serializers.DecimalField(source='sales_tax', max_digits=19, decimal_places=2)
+    Discount = serializers.DecimalField(source='sales_discount', max_digits=19, decimal_places=2)
+    Amount = serializers.DecimalField(source='sales_amount', max_digits=19, decimal_places=2)
+    User = serializers.CharField(
+        source='user', read_only=True)
+    Payment = serializers.CharField(
         source='payment_method.payment_method_name', read_only=True)
-    _sales_status = serializers.CharField(
+    Status = serializers.CharField(
         source='sales_status.sales_status_name', read_only=True)
 
     class Meta:
         model = Sales
         fields = [
-            'sales_id',
-            'sales_date',
-            'sales_subtotal',
-            'sales_tax',
-            'sales_discount',
-            'sales_amount',
-            '_user',
-            '_payment_method',
-            '_sales_status'
+            'ID',
+            'Date',
+            'Subtotal',
+            'Tax',
+            'Discount',
+            'Amount',
+            'User',
+            'Payment',
+            'Status'
         ]
 
 
@@ -111,6 +92,22 @@ class SalesSerializer(serializers.ModelSerializer):
         model = Sales
         fields = '__all__'
 
+
+class SalesSerializerGet(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user', read_only=True)
+    payment = serializers.CharField(source='payment_method.payment_method_name', read_only=True)
+    status = serializers.CharField(source='sales_status.sales_status_name', read_only=True)
+
+    class Meta:
+        model = Sales
+        fields = '__all__'
+        extra_fields = ['user_name', 'payment', 'status']
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        for field in self.Meta.extra_fields:
+            representation[field] = getattr(instance, field, None)
+        return representation
 
 class SalesDetsSerializer(serializers.ModelSerializer):
     Product = serializers.CharField(
@@ -136,3 +133,17 @@ class SalesDetSerializer(serializers.ModelSerializer):
     class Meta:
         model = SalesDetail
         fields = '__all__'
+
+class SalesDetsSerializer(serializers.ModelSerializer):
+    ID=serializers.IntegerField(source='sales_detail_id')
+    Price=serializers.DecimalField(source='sales_detail_prod_price', max_digits=19, decimal_places=2)
+    Tax=serializers.DecimalField(source='sales_detail_tax', max_digits=19, decimal_places=2)
+    Discount=serializers.DecimalField(source='sales_detail_discount', max_digits=19, decimal_places=2)
+    Quantity=serializers.IntegerField(source='sales_detail_quantity')
+    Subtotal=serializers.DecimalField(source='sales_detail_subtotal', max_digits=19, decimal_places=2)
+    Product=serializers.CharField(source='product_s.product_name')
+    Sale=serializers.IntegerField(source='sales.sales_id')
+    Service=ServicesSerializerGet(read_only=True, source='service.service_name')
+    class Meta:
+        model = SalesDetail
+        fields = ['ID','Price','Tax','Discount','Quantity','Subtotal','Product','Sale','Service']

@@ -8,6 +8,12 @@ class ServiceSerializer(serializers.ModelSerializer):
         model = Service
         fields = '__all__'
 
+class ServicesSerializerGet(serializers.ModelSerializer):
+    ID = serializers.IntegerField(source='service_id')
+    Name = serializers.CharField(source='service_name')
+    class Meta:
+        model = Service
+        fields = ['ID', 'Name']
 
 class ServiceDetsSerializer(serializers.ModelSerializer):
     # get the service object related to this user info

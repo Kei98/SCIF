@@ -59,11 +59,11 @@ def product_list(request, format=None):
 @permission_classes([IsAuthenticated])
 def product_post(request, format=None):
     serializer = ProductSerializer(data=request.data)
-    print('prod serializer')
-    print(serializer)
-    print(request.data)
-    print('request')
-    print(request)
+    # print('prod serializer')
+    # print(serializer)
+    # print(request.data)
+    # print('request')
+    # print(request)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)

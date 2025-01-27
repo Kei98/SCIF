@@ -6,14 +6,18 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 def supplier_list(request, format=None):
     if request.method == 'GET':
         supplier = Supplier.objects.all()
         serializer = SupplierSerializer(supplier, many=True)
         return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = SupplierSerializer(data=request.data)
+
+
+@api_view(['GET', 'POST'])
+def supplier_post(request, format=None):
+    if request.method == 'POST':
+        serializer = SuppliersSerializer(data=request.data)
         print(request.data)
         if serializer.is_valid():
             serializer.save()
@@ -21,7 +25,6 @@ def supplier_list(request, format=None):
         else:
             print(serializer.errors)
             return Response(serializer.errors)
-
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def supplier_detail(request, id, format=None):
@@ -34,7 +37,7 @@ def supplier_detail(request, id, format=None):
         serializer = SupplierSerializer(supplier)
         return Response(serializer.data)
     elif request.method == 'PUT':
-        serializer = SupplierSerializer(supplier, data=request.data)
+        serializer = SuppliersSerializer(supplier, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_202_ACCEPTED)
@@ -42,7 +45,7 @@ def supplier_detail(request, id, format=None):
     elif request.method == 'DELETE':
         try:
             supplier.supplier_active = 0
-            serializer1 = SupplierSerializer(supplier)
+            serializer1 = SuppliersSerializer(supplier)
             request.data['_mutable'] = True
             request.data.update(serializer1.data, partial=True)
             request.data['_mutable'] = False
@@ -53,11 +56,11 @@ def supplier_detail(request, id, format=None):
 
         except IntegrityError as e:
             supplier.supplier_active = 0
-            serializer1 = SupplierSerializer(supplier)
+            serializer1 = SuppliersSerializer(supplier)
             request.data['_mutable'] = True
             request.data.update(serializer1.data)
             request.data['_mutable'] = False
-            serializer = SupplierSerializer(supplier, data=request.data)
+            serializer = SuppliersSerializer(supplier, data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response("Will be deactivated because of dependent data", status=status.HTTP_202_ACCEPTED)
